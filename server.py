@@ -1,4 +1,5 @@
 import socket
+import _thread
 from time import strftime
 
 
@@ -11,17 +12,13 @@ class Server(object):
         self.socket.bind((self.ip, self.listen_port))
 
     def runs(self):
-        self.socket.listen(5)
+        self.socket.listen(2)
         try:
             while True:
                 print('inside while')
                 client_socket, client_addr = self.socket.accept()
                 print('Accepted connection with {}'.format(client_addr))
-                client_socket.send(b'Hello from server')
-                command = client_socket.recv(15)
-                self.dispatch_commands(command, client_socket)
-                client_socket.close()
-                break
+                _thread.start_new_thread(self.new_client, (client_socket,))
         except socket.error as err:
             print('Binding error on port {}. Error: {}'.format(self.listen_port, err.args[1]))
 
@@ -47,6 +44,12 @@ class Server(object):
                 client_socket.send(b'Can elaborate on that?')
             command = client_socket.recv(15)
 
+    def new_client(self, client_socket):
+        client_socket.send(b'Hello from server')
+        command = client_socket.recv(15)
+        self.dispatch_commands(command, client_socket)
+        client_socket.close()
+        return
 
 def main():
     server = Server()
