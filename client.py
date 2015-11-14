@@ -12,8 +12,9 @@ class Client(object):
             self.socket.connect((self.ip, self.port))
             print(self.socket.recv(1024).decode())
             self.send_command()
-        except:
-            print('Could not connect to {}'.format(self.port))
+        except socket.error as err:
+            print('Error: {}'.format(err.args[1]))
+        return
 
     def send_command(self):
         while True:
@@ -21,16 +22,18 @@ class Client(object):
             self.socket.send(command.encode())
             if command == '%Close':
                 self.socket.close()
+                return
             else:
                 response = self.socket.recv(240).decode()
                 self.dispatch_response(response)
 
     def dispatch_response(self, response):
         if response == 'Wait for the picture':
-            data = self.socket.recv(10240)
-            file = open('ReceivedTerminator2.jpg', 'w')
+            data = self.socket.recv(21504)
+            file = open('ReceivedTerminator2.jpg', 'wb')
             file.write(data)
             file.close()
+            print('received file')
         else:
             print(response)
 

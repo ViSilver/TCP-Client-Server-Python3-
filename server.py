@@ -18,12 +18,12 @@ class Server(object):
                 client_socket, client_addr = self.socket.accept()
                 print('Accepted connection with {}'.format(client_addr))
                 client_socket.send(b'Hello from server')
-                command = client_socket.receive(15)
+                command = client_socket.recv(15)
                 self.dispatch_commands(command, client_socket)
                 client_socket.close()
                 break
-        except:
-            print('binding error on port {}'.format(self.listen_port))
+        except socket.error as err:
+            print('Binding error on port {}. Error: {}'.format(self.listen_port, err.args[1]))
 
     def dispatch_commands(self, command, client_socket):
         while command != b'%Hastalavista':
@@ -33,7 +33,7 @@ class Server(object):
                 client_socket.send(strftime('%H:%M:%S').encode())
             elif command == b'%Showtime':
                 client_socket.send(b'Wait for the picture')
-                file = open('Terminator2.jpg', 'r')
+                file = open('Terminator2.jpg', 'rb')
                 data = file.read()
                 file.close()
                 client_socket.send(data)
